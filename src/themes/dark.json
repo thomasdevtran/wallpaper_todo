@@ -1,0 +1,30 @@
+{
+  "id": "dark",
+  "name": "Bold Dark Card",
+  "vars": {
+    "font": "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "radius": "14px",
+    "blur": "0px",
+    "panel-bg": "#16181d",
+    "panel-border": "#262a31",
+    "shadow": "0 18px 44px rgba(0, 0, 0, 0.55)",
+    "accent-glow": "none",
+    "text": "#e8eaed",
+    "text-dim": "#a2a8b3",
+    "text-faint": "#6b7280",
+    "accent": "#5b8dff",
+    "accent-contrast": "#0b1220",
+    "row-bg": "#1d2026",
+    "row-bg-hover": "#242830",
+    "input-bg": "#1b1e24",
+    "input-border": "#30343c",
+    "chip-bg": "#242830",
+    "priority-high": "#ef4444",
+    "priority-medium": "#f59e0b",
+    "priority-low": "#22c55e",
+    "overdue": "#ef4444",
+    "due-today": "#f59e0b",
+    "track": "#2a2e36",
+    "danger": "#f87171"
+  }
+}

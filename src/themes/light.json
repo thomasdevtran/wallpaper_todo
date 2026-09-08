@@ -1,0 +1,30 @@
+{
+  "id": "light",
+  "name": "Light Paper",
+  "vars": {
+    "font": "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "radius": "16px",
+    "blur": "6px",
+    "panel-bg": "rgba(252, 252, 250, 0.90)",
+    "panel-border": "rgba(0, 0, 0, 0.08)",
+    "shadow": "0 14px 36px rgba(0, 0, 0, 0.20)",
+    "accent-glow": "none",
+    "text": "#1f2328",
+    "text-dim": "#5b616b",
+    "text-faint": "#9aa0a8",
+    "accent": "#2f6df6",
+    "accent-contrast": "#ffffff",
+    "row-bg": "rgba(0, 0, 0, 0.03)",
+    "row-bg-hover": "rgba(0, 0, 0, 0.06)",
+    "input-bg": "#ffffff",
+    "input-border": "rgba(0, 0, 0, 0.14)",
+    "chip-bg": "rgba(0, 0, 0, 0.05)",
+    "priority-high": "#e5484d",
+    "priority-medium": "#d9930a",
+    "priority-low": "#2f9e44",
+    "overdue": "#e5484d",
+    "due-today": "#d9930a",
+    "track": "rgba(0, 0, 0, 0.10)",
+    "danger": "#e5484d"
+  }
+}
