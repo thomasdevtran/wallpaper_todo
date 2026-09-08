@@ -1,0 +1,29 @@
+{
+  "name": "wallpaper-todo",
+  "version": "0.1.0",
+  "description": "A self-contained desktop todo widget that lives on your Windows wallpaper.",
+  "main": "main.js",
+  "author": "",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "icon": "node assets/generate-icon.js",
+    "build": "electron-builder"
+  },
+  "dependencies": {
+    "koffi": "^2.9.0"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.wallpapertodo.widget",
+    "productName": "WallpaperTodo",
+    "files": ["main.js", "preload.js", "src/**/*", "assets/**/*"],
+    "win": {
+      "target": ["portable", "nsis"],
+      "icon": "assets/icon.png"
+    }
+  }
+}
