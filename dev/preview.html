@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Wallpaper Todo — Preview</title>
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>
+      /* Simulate a photo wallpaper so the glass/blur reads correctly. */
+      html, body {
+        overflow: auto;
+        background:
+          radial-gradient(1200px 800px at 20% 10%, #3a6ea5 0%, transparent 55%),
+          radial-gradient(1000px 700px at 90% 30%, #c06c84 0%, transparent 50%),
+          linear-gradient(135deg, #1b2735 0%, #2c5364 45%, #6b4a6e 100%);
+        background-attachment: fixed;
+      }
+      /* Give the widget a fixed frame like the real window. */
+      body { padding: 0; display: flex; align-items: flex-start; gap: 24px; padding: 24px; flex-wrap: wrap; }
+      .frame { width: 380px; height: 600px; }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <div id="app">
+        <header class="titlebar" id="titlebar">
+          <div class="head-left">
+            <div class="greeting" id="greeting">Hello</div>
+            <div class="datetime"><span class="clock" id="clock">--:--</span><span class="date" id="date"></span></div>
+          </div>
+          <div class="head-actions no-drag">
+            <button class="icon-btn" id="btn-theme" title="Theme">◐</button>
+            <button class="icon-btn" id="btn-settings" title="Settings">⚙</button>
+            <button class="icon-btn" id="btn-hide" title="Hide">—</button>
+          </div>
+        </header>
+        <div class="progress-row no-drag">
+          <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+          <div class="progress-label" id="progress-label">0 of 0 done</div>
+        </div>
+        <nav class="list-tabs no-drag" id="list-tabs"></nav>
+        <main class="todos no-drag" id="todos">
+          <ul class="todo-list" id="todo-list"></ul>
+          <div class="empty-state" id="empty-state" hidden>
+            <div class="empty-emoji">🌤️</div>
+            <div class="empty-title">All clear</div>
+            <div class="empty-sub">Add your first task below.</div>
+          </div>
+        </main>
+        <form class="quick-add no-drag" id="quick-add" autocomplete="off">
+          <input type="text" id="qa-text" placeholder="Add a task…  (Enter)" maxlength="500" />
+          <div class="qa-controls">
+            <select id="qa-priority" title="Priority">
+              <option value="none">Priority</option>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+            <input type="date" id="qa-date" title="Due date" />
+            <select id="qa-list" title="List"></select>
+            <button type="submit" class="add-btn" id="qa-add">Add</button>
+          </div>
+        </form>
+      </div>
+      <div class="popover" id="settings-pop" hidden>
+        <div class="pop-head">Settings</div>
+        <label class="pop-row"><span>Theme</span><select id="set-theme"></select></label>
+        <label class="pop-row"><span>Opacity</span><input type="range" id="set-opacity" min="0.4" max="1" step="0.05" /></label>
+        <label class="pop-row switch-row"><span>Hide completed</span><input type="checkbox" id="set-hidecompleted" /></label>
+        <label class="pop-row switch-row"><span>Start on login</span><input type="checkbox" id="set-autostart" /></label>
+        <div class="pop-sep"></div>
+        <div class="pop-head sub">Lists</div>
+        <div class="lists-editor" id="lists-editor"></div>
+        <form class="add-list-row" id="add-list-form">
+          <input type="text" id="new-list-name" placeholder="New list…" maxlength="40" />
+          <input type="color" id="new-list-color" value="#6ea8fe" />
+          <button type="submit" class="mini-btn">Add</button>
+        </form>
+        <div class="pop-sep"></div>
+        <div class="pop-actions">
+          <button class="mini-btn" id="btn-reset">Reset position</button>
+          <button class="mini-btn danger" id="btn-quit">Quit</button>
+        </div>
+        <div class="pop-foot">Summon anytime with <b>Ctrl+Alt+T</b></div>
+      </div>
+      <div class="popover theme-menu" id="theme-pop" hidden>
+        <div class="pop-head">Theme</div>
+        <div id="theme-choices" class="theme-choices"></div>
+      </div>
+    </div>
+
+    <script src="preview-mock.js"></script>
+    <script src="../src/themes.js"></script>
+    <script src="../src/store.js"></script>
+    <script src="../src/renderer.js"></script>
+  </body>
+</html>
