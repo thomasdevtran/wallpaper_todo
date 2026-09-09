@@ -25,6 +25,7 @@
     "overdue": "#ff6b6b",
     "due-today": "#ffcf5c",
     "track": "rgba(255, 255, 255, 0.12)",
-    "danger": "#ff7b7b"
+    "danger": "#ff7b7b",
+    "scheme": "dark"
   }
 }
