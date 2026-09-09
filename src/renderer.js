@@ -113,7 +113,14 @@
     del.title = 'Delete';
     del.addEventListener('click', (e) => { e.stopPropagation(); onDelete(li, todo.id); });
 
-    li.append(check, main, del);
+    const details = el('button', 'details-btn');
+    details.type = 'button';
+    details.title = 'Edit priority, due date and list';
+    details.setAttribute('aria-label', `Edit details for ${todo.text}`);
+    details.setAttribute('aria-expanded', 'false');
+    details.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m15 5 4 4M4 20l4-1L20 7l-4-4L4 15Z"/></svg>';
+    details.addEventListener('click', () => editDetails(li, todo.id, details));
+    li.append(check, main, details, del);
 
     // keyboard: space=toggle, delete=remove, enter=edit
     li.addEventListener('keydown', (e) => {
@@ -124,6 +131,57 @@
     });
 
     return li;
+  }
+
+  function editDetails(li, id, trigger) {
+    const existing = li.querySelector('.task-details');
+    if (existing) { existing.remove(); li.draggable = true; trigger.setAttribute('aria-expanded', 'false'); return; }
+    const todo = store.state.todos.find((item) => item.id === id);
+    const form = el('form', 'task-details');
+    form.setAttribute('aria-label', 'Task details');
+    li.draggable = false;
+    trigger.setAttribute('aria-expanded', 'true');
+    const field = (label, input) => {
+      input.setAttribute('aria-label', label);
+      const wrapper = el('label', 'detail-field');
+      wrapper.append(el('span', null, label), input);
+      form.appendChild(wrapper);
+      return input;
+    };
+    const priority = field('Priority', el('select'));
+    for (const value of ['none', 'low', 'medium', 'high']) {
+      const option = el('option', null, value === 'none' ? 'No priority' : value[0].toUpperCase() + value.slice(1));
+      option.value = value; priority.appendChild(option);
+    }
+    priority.value = todo.priority || 'none';
+    const due = field('Due date', el('input'));
+    due.type = 'date'; due.value = todo.dueDate || '';
+    const list = field('List', el('select'));
+    for (const item of store.activeLists()) {
+      const option = el('option', null, item.name);
+      option.value = item.id; list.appendChild(option);
+    }
+    list.value = todo.listId;
+    const actions = el('div', 'detail-actions');
+    const cancel = el('button', 'mini-btn', 'Cancel'); cancel.type = 'button';
+    const save = el('button', 'add-btn', 'Save'); save.type = 'submit';
+    const close = () => { form.remove(); li.draggable = true; trigger.setAttribute('aria-expanded', 'false'); trigger.focus(); };
+    cancel.addEventListener('click', close);
+    form.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close(); }
+    });
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      store.updateTodo(id, { priority: priority.value, dueDate: due.value || null, listId: list.value });
+      if (currentFilter !== 'all' && currentFilter !== list.value) {
+        currentFilter = list.value;
+        store.setSetting('activeListFilter', currentFilter);
+        dom.qaList.value = currentFilter;
+      }
+      renderTodos(); renderTabs();
+      [...dom.todoList.children].find((row) => row.dataset.id === id)?.focus();
+    });
+    actions.append(cancel, save); form.appendChild(actions); li.appendChild(form); priority.focus();
   }
 
   function onToggle(li, id) {
@@ -207,6 +265,7 @@
         textEl.textContent = val;
         li.querySelector('.check').setAttribute('aria-label', `Complete ${val}`);
         li.querySelector('.del-btn').setAttribute('aria-label', `Delete ${val}`);
+        li.querySelector('.details-btn').setAttribute('aria-label', `Edit details for ${val}`);
       }
       input.replaceWith(textEl);
     };

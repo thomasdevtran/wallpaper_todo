@@ -460,3 +460,20 @@ button:disabled { opacity: .35; cursor: not-allowed; }
  .empty-sub { font-size: 10px; margin-top: 0; }
  #show-completed { margin-top: 3px; padding: 3px 6px; font-size: 10px; }
 }
+
+.details-btn { flex: none; width: 24px; height: 26px; display: grid; place-items: center; padding: 4px; border: 0; border-radius: 6px; background: transparent; color: var(--text-dim); cursor: pointer; }
+.details-btn svg { width: 15px; height: 15px; }
+.details-btn:hover, .details-btn[aria-expanded="true"] { color: var(--accent); background: var(--row-bg-hover); }
+.todo { column-gap: 7px; flex-wrap: wrap; }
+.todo-main { flex-basis: 0; }
+.task-details { flex: 0 0 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px 0 2px 22px; }
+.detail-field { min-width: 0; display: flex; flex-direction: column; gap: 4px; font-size: 10px; color: var(--text-dim); }
+.detail-field input, .detail-field select { padding: 5px; }
+.detail-actions { display: flex; align-items: flex-end; justify-content: flex-end; gap: 6px; }
+/* Give editing room without changing the widget's window size. */
+@media (min-height: 301px) {
+ #app:has(.task-details) .greeting,
+ #app:has(.task-details) .datetime,
+ #app:has(.task-details) .progress-heading,
+ #app:has(.task-details) .progress-row { display: none; }
+}
