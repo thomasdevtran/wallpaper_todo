@@ -42,7 +42,7 @@
     today.setHours(0, 0, 0, 0);
     const diff = Math.round((due - today) / 86400000);
     let label, cls = '';
-    if (diff < 0) { label = due.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); cls = 'overdue'; }
+    if (diff < 0) { label = 'Overdue · ' + due.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); cls = 'overdue'; }
     else if (diff === 0) { label = 'Today'; cls = 'today'; }
     else if (diff === 1) { label = 'Tomorrow'; }
     else if (diff < 7) { label = due.toLocaleDateString(undefined, { weekday: 'short' }); }
@@ -65,8 +65,12 @@
     li.draggable = true;
 
     // checkbox
-    const check = el('div', 'check');
+    const check = el('button', 'check');
+    check.type = 'button';
+    check.setAttribute('aria-label', `Complete ${todo.text}`);
+    check.setAttribute('aria-pressed', String(!!todo.done));
     check.innerHTML = CHECK_SVG;
+    check.firstElementChild.setAttribute('aria-hidden', 'true');
     check.title = 'Toggle complete';
     check.addEventListener('click', (e) => { e.stopPropagation(); onToggle(li, todo.id); });
 
@@ -78,6 +82,18 @@
     main.appendChild(textEl);
 
     const meta = el('div', 'todo-meta');
+    if (currentFilter === 'all') {
+      const list = store.listById(todo.listId);
+      if (list && !list.deleted) {
+        const badge = el('span', 'list-badge', list.name);
+        badge.style.setProperty('--list-color', list.color);
+        meta.appendChild(badge);
+      }
+    }
+    if (todo.priority && todo.priority !== 'none') {
+      const label = todo.priority[0].toUpperCase() + todo.priority.slice(1);
+      meta.appendChild(el('span', `priority-badge ${todo.priority}`, label + ' priority'));
+    }
     if (todo.dueDate) {
       const info = dueInfo(todo.dueDate);
       if (info) {
@@ -90,6 +106,8 @@
 
     // delete
     const del = el('button', 'del-btn', '×');
+    del.type = 'button';
+    del.setAttribute('aria-label', `Delete ${todo.text}`);
     del.title = 'Delete';
     del.addEventListener('click', (e) => { e.stopPropagation(); onDelete(li, todo.id); });
 
@@ -110,6 +128,7 @@
     const todo = store.toggleTodo(id);
     if (!todo) return;
     li.classList.toggle('done', todo.done);
+    li.querySelector('.check').setAttribute('aria-pressed', String(!!todo.done));
     if (store.getSetting('hideCompleted', false) && todo.done) {
       animateOut(li);
     }
@@ -130,23 +149,30 @@
     if (li.querySelector('.todo-text-input')) return;
     li.draggable = false;
     const input = el('input', 'todo-text-input');
+    input.setAttribute('aria-label', 'Edit task');
+    input.maxLength = 500;
     input.value = store.state.todos.find((t) => t.id === id)?.text || textEl.textContent;
     textEl.replaceWith(input);
     input.focus();
     input.select();
 
+    let finished = false;
     const commit = (save) => {
+      if (finished) return;
+      finished = true;
       li.draggable = true;
       const val = input.value.trim();
       if (save && val) {
         store.updateTodo(id, { text: val });
         textEl.textContent = val;
+        li.querySelector('.check').setAttribute('aria-label', `Complete ${val}`);
+        li.querySelector('.del-btn').setAttribute('aria-label', `Delete ${val}`);
       }
       input.replaceWith(textEl);
     };
     input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); commit(true); }
-      else if (e.key === 'Escape') { e.preventDefault(); commit(false); }
+      if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); commit(true); li.focus(); }
+      else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); commit(false); li.focus(); }
     });
     input.addEventListener('blur', () => commit(true));
   }
@@ -174,10 +200,14 @@
   }
 
   function renderTabs() {
+    const focusedId = dom.tabs.contains(document.activeElement) ? document.activeElement.dataset.filter : null;
     dom.tabs.innerHTML = '';
     const lists = store.activeLists();
     const makeTab = (id, name, color) => {
       const tab = el('button', 'tab' + (currentFilter === id ? ' active' : ''));
+      tab.type = 'button';
+      tab.dataset.filter = id;
+      tab.setAttribute('aria-pressed', String(currentFilter === id));
       if (color) {
         const dot = el('span', 'dot');
         dot.style.background = color;
@@ -186,11 +216,17 @@
       tab.appendChild(el('span', null, name));
       const cnt = store.countFor(id);
       if (cnt) tab.appendChild(el('span', 'count', String(cnt)));
-      tab.addEventListener('click', () => { currentFilter = id; store.setSetting('activeListFilter', id); renderTabs(); renderTodos(); });
+      tab.addEventListener('click', () => {
+        currentFilter = id;
+        store.setSetting('activeListFilter', id);
+        if (id !== 'all') dom.qaList.value = id;
+        renderTabs(); renderTodos();
+      });
       return tab;
     };
     dom.tabs.appendChild(makeTab('all', 'All', null));
     for (const l of lists) dom.tabs.appendChild(makeTab(l.id, l.name, l.color));
+    if (focusedId) [...dom.tabs.children].find((tab) => tab.dataset.filter === focusedId)?.focus();
   }
 
   function renderQuickAddLists() {
@@ -202,8 +238,8 @@
       o.value = l.id;
       sel.appendChild(o);
     }
-    if (prev && store.listById(prev)) sel.value = prev;
-    else if (currentFilter !== 'all' && store.listById(currentFilter)) sel.value = currentFilter;
+    if (prev && store.activeLists().some((list) => list.id === prev)) sel.value = prev;
+    else if (currentFilter !== 'all' && store.activeLists().some((list) => list.id === currentFilter)) sel.value = currentFilter;
   }
 
   // ---------------------------------------------------------------------------
@@ -276,11 +312,27 @@
   // ---------------------------------------------------------------------------
   // Popovers (settings + theme)
   // ---------------------------------------------------------------------------
+  const popTrigger = (pop) => $(pop === dom.settingsPop ? 'btn-settings' : 'btn-theme');
+
+  function closePopovers(restoreFocus = false) {
+    const open = [dom.settingsPop, dom.themePop].find((pop) => !pop.hidden);
+    for (const pop of [dom.settingsPop, dom.themePop]) {
+      pop.hidden = true;
+      popTrigger(pop).setAttribute('aria-expanded', 'false');
+    }
+    if (restoreFocus && open) popTrigger(open).focus();
+  }
+
   function togglePop(pop, show) {
     const target = show ?? pop.hidden;
-    dom.settingsPop.hidden = true;
-    dom.themePop.hidden = true;
-    if (target) pop.hidden = false;
+    closePopovers();
+    if (target) {
+      pop.hidden = false;
+      popTrigger(pop).setAttribute('aria-expanded', 'true');
+      (pop.querySelector('.theme-choice.active') || pop.querySelector('button, select, input'))?.focus();
+    } else {
+      popTrigger(pop).focus();
+    }
   }
 
   function renderThemeMenu() {
@@ -288,10 +340,12 @@
     const cur = store.getSetting('theme', 'glass');
     for (const t of themes.getList()) {
       const btn = el('button', 'theme-choice' + (t.id === cur ? ' active' : ''));
+      btn.type = 'button';
+      btn.setAttribute('aria-pressed', String(t.id === cur));
       const sw = el('span', 'swatch');
       sw.style.background = `linear-gradient(135deg, ${t.vars.accent} 0 50%, ${t.vars['panel-bg']} 50% 100%)`;
       btn.append(sw, el('span', null, t.name));
-      btn.addEventListener('click', () => { selectTheme(t.id); dom.themePop.hidden = true; });
+      btn.addEventListener('click', () => { selectTheme(t.id); closePopovers(true); });
       dom.themeChoices.appendChild(btn);
     }
   }
@@ -310,18 +364,26 @@
       const row = el('div', 'list-edit-row');
       const color = el('input');
       color.type = 'color';
+      color.setAttribute('aria-label', `Color for ${l.name}`);
       color.value = l.color || '#6ea8fe';
       color.addEventListener('change', () => { store.updateList(l.id, { color: color.value }); renderTabs(); });
       const name = el('input');
       name.type = 'text';
+      name.setAttribute('aria-label', `Rename ${l.name}`);
+      name.maxLength = 40;
       name.value = l.name;
-      name.addEventListener('change', () => { if (name.value.trim()) { store.updateList(l.id, { name: name.value.trim() }); renderTabs(); renderQuickAddLists(); } });
+      name.addEventListener('change', () => { if (name.value.trim()) { store.updateList(l.id, { name: name.value.trim() }); renderTabs(); renderQuickAddLists(); renderTodos(); } });
       const del = el('button', 'del-list', '×');
       del.title = 'Delete list';
+      del.type = 'button';
+      del.setAttribute('aria-label', `Delete ${l.name} list`);
       del.addEventListener('click', () => {
         if (store.activeLists().length <= 1) { name.focus(); return; } // keep at least one
         store.deleteList(l.id);
-        if (currentFilter === l.id) currentFilter = 'all';
+        if (currentFilter === l.id) {
+          currentFilter = 'all';
+          store.setSetting('activeListFilter', 'all');
+        }
         renderListsEditor(); renderTabs(); renderQuickAddLists(); renderTodos();
       });
       row.append(color, name, del);
@@ -372,6 +434,11 @@
   }
 
   function wireEvents() {
+    for (const pop of [dom.settingsPop, dom.themePop]) {
+      const trigger = popTrigger(pop);
+      trigger.setAttribute('aria-controls', pop.id);
+      trigger.setAttribute('aria-expanded', 'false');
+    }
     dom.qaForm.addEventListener('submit', onQuickAdd);
     // Explicit Enter handling — reliable across environments (don't rely on
     // implicit single-input form submission).
@@ -403,12 +470,17 @@
     // Close popovers on outside click / Escape.
     document.addEventListener('click', (e) => {
       if (!e.target.closest('.popover') && !e.target.closest('.head-actions')) {
-        dom.settingsPop.hidden = true;
-        dom.themePop.hidden = true;
+        closePopovers();
       }
     });
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') { dom.settingsPop.hidden = true; dom.themePop.hidden = true; }
+      if (e.key === 'Escape' && (!dom.settingsPop.hidden || !dom.themePop.hidden)) {
+        e.preventDefault();
+        closePopovers(true);
+      }
+    });
+    document.addEventListener('focusin', (e) => {
+      if (!e.target.closest('.popover') && !e.target.closest('.head-actions')) closePopovers();
     });
 
     // From main process
