@@ -26,6 +26,8 @@
     "due-today": "#f59e0b",
     "track": "#2a2e36",
     "danger": "#f87171",
-    "scheme": "dark"
+    "scheme": "dark",
+    "menu-bg": "#1d2026",
+    "menu-text": "#e8eaed"
   }
 }

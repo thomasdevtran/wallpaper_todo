@@ -28,7 +28,9 @@
   --due-today: #ffcf5c;
   --track: rgba(255, 255, 255, 0.12);
   --danger: #ff7b7b;
-  --scheme: dark; /* drives native control (select popup, date picker) theming */
+  --scheme: dark; /* drives native control (date picker, scrollbars) theming */
+  --menu-bg: #1b1e28;   /* SOLID background for native <option> popups */
+  --menu-text: #f4f6fb;
 }
 
 * { box-sizing: border-box; }
@@ -231,9 +233,16 @@ select, input[type="date"] {
   color: var(--text); cursor: pointer; min-width: 0;
 }
 select:focus, input[type="date"]:focus { outline: none; border-color: var(--accent); }
-/* Theme the native popups/calendar/track so options stay legible in every theme. */
+/* Theme the native calendar/scrollbars/track to match each theme. */
 select, input[type="date"], input[type="range"], input[type="color"], .switch-row input {
   color-scheme: var(--scheme);
+}
+/* Native <select> popups inherit the control's colors, so give options a SOLID
+   background + readable text — otherwise the translucent control background
+   bleeds through and light text becomes invisible (e.g. glass theme). */
+option {
+  background-color: var(--menu-bg);
+  color: var(--menu-text);
 }
 input[type="date"] { flex: 1; }
 #qa-priority { flex: none; }
