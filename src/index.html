@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta http-equiv="Content-Security-Policy"
       content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:;" />
     <title>Wallpaper Todo</title>
@@ -12,6 +13,7 @@
       <!-- Header (drag region) -->
       <header class="titlebar" id="titlebar">
         <div class="head-left">
+          <div class="identity"><span class="status-dot"></span> wallpaper <span class="identity-slash">/</span> todo</div>
           <div class="greeting" id="greeting">Hello</div>
           <div class="datetime">
             <span class="clock" id="clock">--:--</span>
@@ -19,46 +21,49 @@
           </div>
         </div>
         <div class="head-actions no-drag">
-          <button class="icon-btn" id="btn-theme" title="Theme">◐</button>
-          <button class="icon-btn" id="btn-settings" title="Settings">⚙</button>
-          <button class="icon-btn" id="btn-hide" title="Hide (tray to reopen)">—</button>
+          <button class="icon-btn" id="btn-theme" title="Theme" aria-label="Theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 0 0 16Z" fill="currentColor" stroke="none"/></svg></button>
+          <button class="icon-btn" id="btn-settings" title="Settings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/></svg></button>
+          <button class="icon-btn" id="btn-hide" title="Hide (tray to reopen)" aria-label="Hide (tray to reopen)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
         </div>
       </header>
 
       <!-- Progress -->
+      <div class="progress-heading"><span>TASK PROGRESS</span><span class="progress-label" id="progress-label">0 of 0 done</span></div>
       <div class="progress-row no-drag">
         <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
-        <div class="progress-label" id="progress-label">0 of 0 done</div>
+
       </div>
 
       <!-- List tabs -->
-      <nav class="list-tabs no-drag" id="list-tabs"></nav>
+      <nav class="list-tabs no-drag" id="list-tabs" aria-label="Task lists"></nav>
 
       <!-- Todo list -->
       <main class="todos no-drag" id="todos">
         <ul class="todo-list" id="todo-list"></ul>
         <div class="empty-state" id="empty-state" hidden>
-          <div class="empty-emoji">🌤️</div>
+          <div class="empty-emoji"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="24" cy="24" r="17"/><path d="m16 24 6 6 11-12"/></svg></div>
           <div class="empty-title">All clear</div>
-          <div class="empty-sub">Add your first task below.</div>
+          <div class="empty-sub">A little space for what comes next.</div>
         </div>
       </main>
 
       <!-- Quick add -->
       <form class="quick-add no-drag" id="quick-add" autocomplete="off">
-        <input type="text" id="qa-text" placeholder="Add a task…  (Enter)" maxlength="500" />
+        <label class="composer-label" for="qa-text">WHAT’S NEXT?</label>
+        <input type="text" id="qa-text" aria-label="New task" placeholder="Make room for one thing…" maxlength="500" />
         <div class="qa-controls">
-          <select id="qa-priority" title="Priority">
+          <select id="qa-priority" title="Priority" aria-label="Priority">
             <option value="none">Priority</option>
             <option value="low">Low</option>
             <option value="medium">Medium</option>
             <option value="high">High</option>
           </select>
-          <input type="date" id="qa-date" title="Due date" />
-          <select id="qa-list" title="List"></select>
-          <button type="submit" class="add-btn" id="qa-add">Add</button>
+          <input type="date" id="qa-date" title="Due date" aria-label="Due date" />
+          <select id="qa-list" title="List" aria-label="List"></select>
+          <button type="submit" class="add-btn" id="qa-add">Add <span aria-hidden="true">↵</span></button>
         </div>
       </form>
+      <footer class="widget-footer"><span><span class="status-dot"></span> LOCAL &amp; OFFLINE</span><span>Ctrl + Alt + T</span></footer>
     </div>
 
     <!-- Settings popover -->
@@ -89,8 +94,8 @@
       <div class="pop-head sub">Lists</div>
       <div class="lists-editor" id="lists-editor"></div>
       <form class="add-list-row" id="add-list-form">
-        <input type="text" id="new-list-name" placeholder="New list…" maxlength="40" />
-        <input type="color" id="new-list-color" value="#6ea8fe" />
+        <input type="text" aria-label="New list name" id="new-list-name" placeholder="New list…" maxlength="40" />
+        <input type="color" aria-label="New list color" id="new-list-color" value="#6ea8fe" />
         <button type="submit" class="mini-btn">Add</button>
       </form>
 
