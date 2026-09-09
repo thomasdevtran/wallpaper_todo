@@ -445,3 +445,8 @@ option { background: var(--panel-bg); color: var(--text); }
  .todo { align-items: flex-start; padding-block: 5px; }
  .todo .check { margin-top: 2px; }
 }
+
+.flow-notice { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; gap: 8px; padding: 7px 9px; margin-bottom: 6px; border: 1px solid var(--input-border); border-radius: 8px; background: var(--panel-bg); box-shadow: 0 4px 12px #0002; }
+#flow-message { flex: 1; min-width: 0; font-size: 11px; color: var(--text); overflow-wrap: anywhere; }
+.flow-notice .mini-btn { color: var(--accent); flex: none; }
+.flow-notice .icon-btn { width: 22px; height: 24px; flex: none; }

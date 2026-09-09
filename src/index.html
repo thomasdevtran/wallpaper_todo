@@ -39,6 +39,11 @@
 
       <!-- Todo list -->
       <main class="todos no-drag" id="todos">
+        <div class="flow-notice" id="flow-notice" hidden>
+          <span id="flow-message" role="status" aria-live="polite"></span>
+          <button type="button" class="mini-btn" id="flow-action" hidden>Undo</button>
+          <button type="button" class="icon-btn" id="flow-dismiss" aria-label="Dismiss notification">×</button>
+        </div>
         <ul class="todo-list" id="todo-list"></ul>
         <div class="empty-state" id="empty-state" hidden>
           <div class="empty-emoji"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="24" cy="24" r="17"/><path d="m16 24 6 6 11-12"/></svg></div>

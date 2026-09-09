@@ -12,6 +12,8 @@
   // DOM refs
   const dom = {};
   let currentFilter = 'all';
+  const deletedTasks = [];
+  let noticeAction = null;
 
   // ---------------------------------------------------------------------------
   // Clock / greeting
@@ -136,12 +138,50 @@
     renderTabs();
   }
 
+  function showNotice(message, label, action) {
+    dom.notice.hidden = false;
+    dom.noticeMessage.textContent = message;
+    dom.noticeAction.hidden = !action;
+    dom.noticeAction.textContent = label || '';
+    noticeAction = action || null;
+  }
+
+  function showDeleteNotice() {
+    const count = deletedTasks.length;
+    if (!count) { dom.notice.hidden = true; noticeAction = null; return; }
+    showNotice(count === 1 ? 'Task deleted.' : `${count} tasks deleted.`, 'Undo', () => {
+      const id = deletedTasks.pop();
+      const todo = store.updateTodo(id, { deleted: false });
+      if (currentFilter !== 'all' && currentFilter !== todo.listId) {
+        currentFilter = store.activeLists().some((list) => list.id === todo.listId) ? todo.listId : 'all';
+        store.setSetting('activeListFilter', currentFilter);
+        if (currentFilter !== 'all') dom.qaList.value = currentFilter;
+      }
+      if (todo.done) store.setSetting('hideCompleted', false);
+      renderTodos(); renderTabs(); showDeleteNotice();
+      [...dom.todoList.children].find((row) => row.dataset.id === id)?.focus();
+    });
+  }
+
   function onDelete(li, id) {
-    animateOut(li, () => { store.deleteTodo(id); updateProgress(); renderTabs(); updateEmptyState(); });
+    if (li.classList.contains('removing')) return;
+    // Persist immediately; switching filters during the animation must not resurrect it.
+    store.deleteTodo(id);
+    deletedTasks.push(id);
+    showDeleteNotice();
+    updateProgress(); renderTabs();
+    animateOut(li);
   }
 
   function animateOut(li, after) {
+    if (li.classList.contains('removing')) return;
+    const hadFocus = li.contains(document.activeElement);
+    const nextId = (li.nextElementSibling || li.previousElementSibling)?.dataset.id;
     li.classList.add('removing');
+    if (hadFocus) {
+      const next = [...dom.todoList.children].find((row) => row.dataset.id === nextId && !row.classList.contains('removing'));
+      (next || dom.qaText).focus();
+    }
     setTimeout(() => { li.remove(); if (after) after(); updateEmptyState(); }, 200);
   }
 
@@ -410,6 +450,9 @@
   // Wire up
   // ---------------------------------------------------------------------------
   function cacheDom() {
+    dom.notice = $('flow-notice');
+    dom.noticeMessage = $('flow-message');
+    dom.noticeAction = $('flow-action');
     dom.greeting = $('greeting');
     dom.clock = $('clock');
     dom.date = $('date');
@@ -434,6 +477,8 @@
   }
 
   function wireEvents() {
+    dom.noticeAction.addEventListener('click', () => noticeAction?.());
+    $('flow-dismiss').addEventListener('click', () => { dom.notice.hidden = true; dom.qaText.focus(); });
     for (const pop of [dom.settingsPop, dom.themePop]) {
       const trigger = popTrigger(pop);
       trigger.setAttribute('aria-controls', pop.id);
