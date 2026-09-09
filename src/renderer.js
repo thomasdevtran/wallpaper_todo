@@ -231,6 +231,13 @@
   function updateEmptyState() {
     const has = dom.todoList.querySelector('.todo:not(.removing)');
     dom.empty.hidden = !!has;
+    const p = store.progress(currentFilter);
+    const hiddenDone = store.getSetting('hideCompleted', false) && p.done > 0;
+    dom.empty.querySelector('.empty-title').textContent = hiddenDone ? 'All done' : 'No tasks yet';
+    dom.empty.querySelector('.empty-sub').textContent = hiddenDone
+      ? `${p.done} completed ${p.done === 1 ? 'task is' : 'tasks are'} hidden.`
+      : 'Add a task below to get started.';
+    $('show-completed').hidden = !hiddenDone;
   }
 
   function updateProgress() {
@@ -288,7 +295,8 @@
   function onQuickAdd(e) {
     e.preventDefault();
     const text = dom.qaText.value.trim();
-    if (!text) return;
+    if (!text) { dom.qaText.focus(); return; }
+    if (!dom.qaForm.reportValidity()) return;
     const todo = store.addTodo({
       text,
       priority: dom.qaPriority.value,
@@ -300,6 +308,18 @@
       const node = createTodoEl(todo);
       node.classList.add('enter');
       dom.todoList.insertBefore(node, dom.todoList.firstChild);
+      $('todos').scrollTop = 0;
+    } else {
+      const list = store.listById(todo.listId);
+      showNotice(`Added to ${list?.name || 'another list'}.`, 'View list', () => {
+        currentFilter = todo.listId;
+        store.setSetting('activeListFilter', currentFilter);
+        dom.qaList.value = currentFilter;
+        dom.notice.hidden = true;
+        renderTabs(); renderTodos();
+        [...dom.todoList.children].find((row) => row.dataset.id === todo.id)?.focus();
+      });
+      $('todos').scrollTop = 0;
     }
     dom.qaText.value = '';
     dom.qaPriority.value = 'none';
@@ -406,15 +426,16 @@
       color.type = 'color';
       color.setAttribute('aria-label', `Color for ${l.name}`);
       color.value = l.color || '#6ea8fe';
-      color.addEventListener('change', () => { store.updateList(l.id, { color: color.value }); renderTabs(); });
+      color.addEventListener('change', () => { store.updateList(l.id, { color: color.value }); renderTabs(); renderTodos(); });
       const name = el('input');
       name.type = 'text';
       name.setAttribute('aria-label', `Rename ${l.name}`);
       name.maxLength = 40;
       name.value = l.name;
-      name.addEventListener('change', () => { if (name.value.trim()) { store.updateList(l.id, { name: name.value.trim() }); renderTabs(); renderQuickAddLists(); renderTodos(); } });
+      name.addEventListener('change', () => { if (!name.value.trim()) { name.value = l.name; return; } if (name.value.trim()) { store.updateList(l.id, { name: name.value.trim() }); renderTabs(); renderQuickAddLists(); renderTodos(); } });
       const del = el('button', 'del-list', '×');
-      del.title = 'Delete list';
+      del.disabled = lists.length <= 1;
+      del.title = del.disabled ? 'Keep at least one list' : 'Delete list; tasks move to the first remaining list';
       del.type = 'button';
       del.setAttribute('aria-label', `Delete ${l.name} list`);
       del.addEventListener('click', () => {
@@ -477,6 +498,11 @@
   }
 
   function wireEvents() {
+    $('show-completed').addEventListener('click', () => {
+      store.setSetting('hideCompleted', false);
+      renderTodos(); renderTabs();
+      (dom.todoList.querySelector('.todo') || dom.qaText).focus();
+    });
     dom.noticeAction.addEventListener('click', () => noticeAction?.());
     $('flow-dismiss').addEventListener('click', () => { dom.notice.hidden = true; dom.qaText.focus(); });
     for (const pop of [dom.settingsPop, dom.themePop]) {
