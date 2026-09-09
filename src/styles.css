@@ -407,8 +407,8 @@ html[data-theme="light"] option { background: #fff; color: #222; }
 @media (prefers-reduced-motion: reduce) {
  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
-:root { color-scheme: dark; }
-html[data-theme="light"] { color-scheme: light; }
+#app, .popover { color-scheme: dark; }
+html[data-theme="light"] #app, html[data-theme="light"] .popover { color-scheme: light; }
 .todos { scrollbar-color: var(--track) transparent; }
 .list-badge { display: inline-flex; align-items: center; gap: 4px; }
 .list-badge::before { content: ''; width: 4px; height: 4px; background: var(--list-color, var(--accent)); border-radius: 50%; }
@@ -431,3 +431,17 @@ html[data-theme="light"] { color-scheme: light; }
 }
 .list-badge { max-width: 100%; overflow-wrap: anywhere; }
 option { background: var(--panel-bg); color: var(--text); }
+
+@media (max-height: 300px) {
+ .titlebar { min-height: 34px; padding-block: 5px; }
+ .head-actions { top: 3px; }
+ .clock { font-size: 22px; }
+ .list-tabs { padding-block: 2px; }
+ .tab { padding-block: 4px; }
+ .todos { padding-bottom: 3px; }
+}
+
+@media (max-height: 300px) {
+ .todo { align-items: flex-start; padding-block: 5px; }
+ .todo .check { margin-top: 2px; }
+}
